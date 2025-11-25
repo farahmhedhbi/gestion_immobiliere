@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../../widgets/property_card.dart';
 import 'property_detail_screen.dart';
 import 'add_property_screen.dart';
+import 'edit_property_screen.dart';
 
 class PropertiesScreen extends StatefulWidget {
   const PropertiesScreen({super.key});
@@ -64,6 +65,19 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
     }
   }
 
+  void _navigateToEditProperty(dynamic property) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPropertyScreen(property: property),
+      ),
+    );
+    
+    if (result == true) {
+      _refreshProperties();
+    }
+  }
+
   void _navigateToPropertyDetail(dynamic property) {
     Navigator.push(
       context,
@@ -71,6 +85,47 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         builder: (context) => PropertyDetailScreen(property: property),
       ),
     );
+  }
+
+  void _showDeleteDialog(dynamic property) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer le bien'),
+        content: Text('Êtes-vous sûr de vouloir supprimer "${property['title']}" ? Cette action est irréversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteProperty(property);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteProperty(dynamic property) async {
+    final result = await ApiService.deleteProperty(property['id'].toString());
+    
+    if (result['success'] == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bien supprimé avec succès')),
+      );
+      _refreshProperties();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Erreur lors de la suppression')),
+      );
+    }
   }
 
   Widget _buildEmptyState() {
@@ -152,6 +207,59 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
     );
   }
 
+  Widget _buildPropertyCardWithActions(dynamic property) {
+    return Stack(
+      children: [
+        PropertyCard(
+          property: property,
+          onTap: () => _navigateToPropertyDetail(property),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 18),
+                  color: Colors.blue,
+                  onPressed: () => _navigateToEditProperty(property),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 18),
+                  color: Colors.red,
+                  onPressed: () => _showDeleteDialog(property),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildGridView() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -161,7 +269,6 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                 ? 3 
                 : 2;
         
-        // RATIO AUGMENTÉ pour correspondre à la hauteur fixe
         final childAspectRatio = crossAxisCount == 4 
             ? 0.7 
             : crossAxisCount == 3 
@@ -181,10 +288,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
             itemCount: _properties.length,
             itemBuilder: (context, index) {
               final property = _properties[index];
-              return PropertyCard(
-                property: property,
-                onTap: () => _navigateToPropertyDetail(property),
-              );
+              return _buildPropertyCardWithActions(property);
             },
           ),
         );

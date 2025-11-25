@@ -34,7 +34,7 @@ class PropertyCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          height: 220, // HAUTEUR FIXE pour éviter les débordements
+          height: 220,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
