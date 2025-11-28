@@ -4,6 +4,7 @@ import '../../widgets/property_card.dart';
 import 'property_detail_screen.dart';
 import 'add_property_screen.dart';
 import 'edit_property_screen.dart';
+import 'search_screen.dart'; // IMPORT AJOUTÉ
 
 class PropertiesScreen extends StatefulWidget {
   const PropertiesScreen({super.key});
@@ -84,6 +85,14 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
       MaterialPageRoute(
         builder: (context) => PropertyDetailScreen(property: property),
       ),
+    );
+  }
+
+  // NOUVEAU: Navigation vers l'écran de recherche
+  void _navigateToSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SearchScreen()),
     );
   }
 
@@ -305,11 +314,10 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         foregroundColor: Colors.white,
         elevation: 2,
         actions: [
+          // BOUTON RECHERCHE MODIFIÉ
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implémenter la recherche
-            },
+            onPressed: _navigateToSearch,
           ),
           IconButton(
             icon: _isRefreshing

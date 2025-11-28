@@ -11,8 +11,12 @@ class ApiService {
     print('=== API REQUEST ===');
     print('Method: $method');
     print('URL: $baseUrl/$endpoint');
-    print('Params: $params');
-    print('Data: $data');
+    if (params != null && params.isNotEmpty) {
+      print('Params: $params');
+    }
+    if (data != null && data.isNotEmpty) {
+      print('Data: $data');
+    }
   }
   
   static void _logResponse(int statusCode, String body) {
@@ -44,7 +48,7 @@ class ApiService {
       // Construire l'URL avec les paramètres
       var url = '$baseUrl/$endpoint';
       if (params != null && params.isNotEmpty) {
-        final paramsString = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+        final paramsString = params.entries.map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}').join('&');
         url += '?$paramsString';
       }
       
@@ -172,6 +176,13 @@ class ApiService {
   
   static Future<Map<String, dynamic>> deleteProperty(String id) async {
     return await _request('DELETE', 'properties.php', params: {'id': id});
+  }
+  
+  // NOUVEAU: Recherche de propriétés
+  static Future<Map<String, dynamic>> searchProperties(String query) async {
+    return await _request('GET', 'properties.php', params: {
+      'search': query,
+    });
   }
   
   // Clients
